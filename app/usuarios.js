@@ -5,8 +5,51 @@ const now = new Date()
 
 module.exports = (app) => {
 
-    //Obtenemos la sesion actual
+    //Creamos el token con todos los cambios
     app.post('/token', (req, res) => {
+
+        const {email} = req.body;
+
+        let user = {
+            id: 0,
+            nombre: "",
+            apellido: "",
+            email: "",
+            username: "",
+            avatar: "",
+            status: "",
+            cuenta: "",
+            fecha_regsitro: "",
+            fecha_eliminacion: "",
+            hora_inicio: 0,
+            horas: 0,
+            rol: "",
+            id_contador: 0            
+        }
+
+        pool.query('SELECT id_usuario, nombre, apellido, email, username, avatar, status, cuenta, fecha_registro, fecha_eliminacion, hora_inicio, horas, rol, id_contador FROM usuarios WHERE email = $1', [email], (err, result) => {
+            if(err){
+                res.json({status: 0, mensaje: "Error en la consulta"})
+            }
+            else{
+                user = result.rows[0];
+                const token = jwt.sign(user, "profileAuth");
+
+                pool.query('UPDATE usuarios SET jwt = $1 WHERE email = $2', [token, email], (err, result) => {
+                    if(err){
+                        res.json({status: 0, mensaje: "Token no pudo ser ingresado"})
+                    }
+                    else{
+                        res.json({status: 1, mensaje: "Token creado", token: token})
+                    }
+                });
+            }
+        })
+
+    })
+
+    //Obtenemos la sesion actual
+    app.post('/decodeToken', (req, res) => {
 
         const {token} = req.body;
 
@@ -26,60 +69,23 @@ module.exports = (app) => {
     app.post('/login', (req, res) => {
 
         const {email, password} = req.body;
-
-        let user = {
-            id: 0,
-            nombre: "",
-            apellido: "",
-            email: "",
-            username: "",
-            avatar: "",
-            status: "",
-            cuenta: "",
-            fecha_regsitro: "",
-            fecha_eliminacion: "",
-            hora_inicio: 0,
-            horas: 0,
-            rol: "",
-            id_contador: 0            
-        }
         
         if(email == "" && password == ""){
             res.json({status: 0, mensaje: "Complete el formulario"})
         }
         else{
-
-            //Obtenemos los datos del usuario que quier iniciar sesion
-            pool.query("SELECT id_usuario, nombre, apellido, email, username, avatar, status, cuenta, fecha_registro, fecha_eliminacion, hora_inicio, horas, rol, id_contador FROM usuarios WHERE email = $1 AND pass = $2", [email, password], (err, result1) => {
+            pool.query("SELECT id_usuario, nombre, apellido, email, username, avatar, status, cuenta, fecha_registro, fecha_eliminacion, hora_inicio, horas, rol, id_contador FROM usuarios WHERE email = $1 AND pass = $2", [email, password], (err, result) => {
                 if(err){
                     res.json({status: 0, mensaje: "Usuario no registrado"})
                 }
                 else{
 
-                    if(result1.rows.length == 0){
+                    if(result.rows.length == 0){
                          res.json({status: 0, mensaje: "Usuario no registrado", error: err})
                     }
                     else{
 
-                        user = result1.rows[0];
-                        user.status = "logged";
-                        const token = jwt.sign(user, "profileAuth");
-
-                        pool.query("UPDATE  usuarios  SET jwt  = $1 WHERE email = $2", [token, email], (err, result2) => {
-                            if(err){
-                                res.json({status: 0, mensaje: "No logro ingresar el token"});
-                            }
-                            else{
-                                pool.query("UPDATE usuarios SET status = $1 WHERE email = $2", ["logged", email], (err, result3) => {
-                                    if(err){
-                                        res.json({status: 0, mensaje: "No logro inicia sesion"});
-                                    }
-                                    else{
-                                        res.json({status: 1, mensaje: "Bienvenido @" + result1.rows[0].username, token: token, values: user.status});
-                                    }
-                                })
-                            }
-                        })
+                        res.json({status: 1, mensaje: "Bienvenido @" + result.rows[0].username, status: result.rows[0].status, cuenta: result.rows[0].cuenta});
                     }
                 }
             })
@@ -87,49 +93,21 @@ module.exports = (app) => {
 
     })
 
-    //Salir de la sesion
-    app.post('/logout', (req, res) => {
+    //Cambiamos el status de la cuenta del usuario
+    app.post('/changeLogged', (req, res) => {
 
-        const {userSession} = req.body;
+        const {type, email} = req.body;
 
-        let user = {
-            id: 0,
-            nombre: "",
-            apellido: "",
-            email: "",
-            username: "",
-            avatar: "",
-            status: "",
-            cuenta: "",
-            fecha_regsitro: "",
-            fecha_eliminacion: "",
-            hora_inicio: 0,
-            horas: 0,
-            rol: "",
-            id_contador: 0            
-        }
+        pool.query("UPDATE usuarios SET status = $1 WHERE email = $2", [type, email], (err, result) => {
 
-        user = userSession;
-        user.status = "Nlogged";
-        email = user.email;
-        console.log(user)
-        const token = jwt.sign(user, "profileAuth");
-
-        pool.query("UPDATE  usuarios  SET jwt  = $1 WHERE email = $2", [token, email], (err, result2) => {
             if(err){
-                res.json({status: 0, mensaje: "No logro ingresar el token"});
+                res.json({status: 0, mensaje: "No se pudo cambiar el status del usuario"})
             }
             else{
-                pool.query("UPDATE usuarios SET status = $1 WHERE email = $2", ["Nlogged", email], (err, result3) => {
-                    if(err){
-                        res.json({status: 0, mensaje: "No logro salir de la sesion"});
-                    }
-                    else{
-                        res.json({status: 1, mensaje: "Sesion cerrada", token: token});
-                    }
-                })
+                res.json({status: 1, mensaje: "Status cambiado", values: type})
             }
         })
+
 
     })
 
