@@ -53,6 +53,7 @@ CREATE TABLE empresas(
 );
 
 CREATE TABLE facturas(
+	id_factura SERIAL NOT NULL,
 	dte INTEGER NOT NULL,
 	serie VARCHAR(20) NOT NULL,
 	nit_emisor INTEGER NOT NULL,

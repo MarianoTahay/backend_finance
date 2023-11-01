@@ -1,40 +1,25 @@
 const pool = require('../config/database');
 const multer = require('multer');
+const path = require('path');
 
 module.exports = (app) => {
 
-    const storage = multer.diskStorage({
-        destination: (req, file, cb) => {
-          if (file.mimetype === 'application/pdf') {
-            cb(null, 'assets/pdfs/');
-          } else if (file.mimetype.startsWith('image/')) {
-            cb(null, 'assets/avatars');
-          } else {
-            cb(new Error('Tipo de archivo no válido.'), null);
-          }
-        },
-        filename: (req, file, cb) => {
-          cb(null, file.filename);
-        },
-    });
+  
+  const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, 'assets/' + req.body.type + '/')
+    },
+    filename: function (req, file, cb) {
 
-    const fileFilter = (req, file, cb) => {
-        if (file.mimetype === 'application/pdf' || file.mimetype.startsWith('image/')) {
-          cb(null, true);
-        } else {
-          cb(null, false);
-        }
-    };
+      cb(null, req.body.id + path.extname(file.originalname))
+    }
+  });
 
-    const upload = multer({ storage, fileFilter });
+  const upload = multer({ storage: storage });
 
-    app.post('/subir-archivo', upload.array('archivo'), (req, res) => {
+  app.post('/subir-archivo', upload.single('archivo'), (req, res) => {
 
-        if (!req.file) {
-            return res.status(400).send('No se ha seleccionado un archivo válido.');
-          }
-        
-          res.send('Archivo subido con éxito.');
+    console.log("./../../../../../../backend/" + req.body.type + "/" + req.file.filename)
 
-    })
+  })
 }
