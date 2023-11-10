@@ -211,9 +211,6 @@ module.exports = (app) => {
 
         const {id} = req.body;
 
-        console.log(id)
-
-
         pool.query('SELECT * FROM usuarios WHERE id_usuario != $1', [id], (err, result) => {
             if(err){
                 res.json({status: 0, mensaje: "Error en la consulta"});
@@ -249,5 +246,41 @@ module.exports = (app) => {
 
 
     })
+
+    //Hacer cambios en la info del usuario
+    app.post('/updateUser', (req, res) => {
+
+        const {nombre, apellido, email, avatar} = req.body;
+
+        const emailRegex = /^\w+@\w+\.\w{2,}$/;
+
+        if(!emailRegex.test(email)){
+            res.json({status: 0, mensaje: "Correo no valido"});
+        }
+        else if(avatar == ""){
+            pool.query('UPDATE usuarios SET nombre = $1, apellido = $2, email = $3 WHERE email = $3', [nombre, apellido, email], (err, result) => {
+                if(err){
+                    res.json({status: 0, mensaje: "No se pudieron hacer los cambios"})
+                }
+                else{
+                    res.json({status: 1, mensaje: "Datos guardados", values: result.rows})
+                }
+                
+            });
+        }
+        else{
+            console.log("hola" + nombre + apellido + email + avatar)
+            pool.query('UPDATE usuarios SET nombre = $1, apellido = $2, email = $3, avatar = $4 WHERE email = $3', [nombre, apellido, email, avatar], (err, result) => {
+                if(err){
+                    console.log(err)
+                    res.json({status: 0, mensaje: "No se pudieron hacer los cambios BD"})
+                }
+                else{
+                    res.json({status: 1, mensaje: "Datos guardados", values: result.rows})
+                }
+                
+            });
+        }
+    });
 
 }

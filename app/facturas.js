@@ -1,4 +1,5 @@
 const pool = require('../config/database');
+const jwt = require('jsonwebtoken');
 
 module.exports = (app) => {
 
@@ -73,21 +74,52 @@ module.exports = (app) => {
     //Registrar facturas
     app.post('/bills-insert', (req, res) => {
 
-        const {dte, serie, nit_emisor, monto, fecha_emision, username} = req.body;
+        let {dte, serie, emisor, receptor, monto, emision, user, imagen, pdf, status} = req.body;
 
-        if(dte == "" || serie == "" || nit_emisor == "" || monto == "" || fecha_emision == "" || username == ""){
-            res.json({status: 1, mensaje: "Invalid Data"})
+
+        let document = {
+            nombre: "",
+            extension: ""
+        }
+
+
+        if(imagen == "" && pdf == ""){
+            res.json({status: 0, mensaje: "Adjunte un archivo"})
         }
         else{
-            pool.query("INSERT INTO facturas(dte, serie, nit_emisor, monto, fecha_emision, username) VALUES($1, $2, $3, $4, $5, $6) ", [dte, serie, nit_emisor, monto, fecha_emision, username], (err, results) => {
-            
-                if(err){
-                    res.json({status: 0, mensaje: "Invalid Data", error: err})
+            if(dte == "" || serie == "" || emisor == "" || receptor == "" || monto == "" || emision == "" || user == "" || status == ""){
+                res.json({status: 0, mensaje: "Complete el formulario"})
+            }
+            else{
+
+                let token = ""
+
+                if(imagen == ""){
+                    payload = pdf.split('.')
+                    document.nombre = payload[0];
+                    document.extension = payload[1];
+                    token = jwt.sign(document, "profileAuth");
+                    pdf = token;
                 }
                 else{
-                    res.json({status: 1, mensaje: "Bill added!", values: results.rows});
+                    payload = imagen.split('.')
+                    document.nombre = payload[0];
+                    document.extension = payload[1];
+                    token = jwt.sign(document, "profileAuth");
+                    imagen = token;
                 }
-            })
+
+                pool.query("INSERT INTO facturas(dte, serie, nit_emisor, nit_receptor, monto, fecha_emision, id_usuario, imagen, pdf, status) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) ", [dte, serie, emisor, receptor, monto, emision, user, imagen, pdf, status], (err, results) => {
+                
+                    if(err){
+                        console.log(err)
+                        res.json({status: 0, mensaje: "No se pudo ingresar la factura", error: err})
+                    }
+                    else{
+                        res.json({status: 1, mensaje: "Factura ingresada", documentToken: token});
+                    }
+                })
+            }
         }
     })
 

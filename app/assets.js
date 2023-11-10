@@ -41,12 +41,38 @@ module.exports = (app) => {
     }
   })
   
-  const upload = multer({ storage: storage })
+  const upload = multer({storage: storage})
 
   app.post('/subirArchivo', upload.single('archivo'), (req, res) => {
 
     console.log("Archivo subido");
 
   })
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+  const storageBills = multer.diskStorage({
+    destination: function (req, file, cb) {
+
+      cb(null, 'assets/documentos')
+    },
+    filename: function (req, file, cb) {
+
+      const token = req.body.token;
+
+      console.log(token);
+
+      cb(null, token + path.extname(file.originalname))
+    }
+  })
+  
+  const uploadBills = multer({storage: storageBills})
+
+  app.post('/subirFactura', uploadBills.single('archivo'), (req, res) => {
+
+    console.log("Factura subida");
+
+  })
+
 
 }

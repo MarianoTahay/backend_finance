@@ -5,7 +5,13 @@ DROP TABLE usuarios
 
 SELECT * FROM usuarios
 
+SELECT * FROM facturas 
+
+SELECT * FROM empresas
+
 DELETE FROM usuarios WHERE nombre = 'Mariano'
+
+UPDATE usuarios SET avatar = '1.jpg' WHERE nombre = 'Mariano'
 
 ALTER SEQUENCE usuarios_id_usuario_seq RESTART WITH 1
 
@@ -41,6 +47,8 @@ CREATE TABLE categorias(
 	PRIMARY KEY(id_categoria)
 );
 
+INSERT INTO categorias(nombre, status) VALUES('Electronicos', 'disponible')
+
 CREATE TABLE empresas( 
 	nombre VARCHAR(50) NOT NULL,
 	nit INTEGER NOT NULL,
@@ -51,6 +59,8 @@ CREATE TABLE empresas(
 	PRIMARY KEY(nit),
 	FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria)
 );
+
+INSERT INTO empresas(nombre, nit, id_categoria, status) VALUES('Intelaf', 123, 1, 'vigente');
 
 CREATE TABLE facturas(
 	id_factura SERIAL NOT NULL,
@@ -64,7 +74,7 @@ CREATE TABLE facturas(
 	imagen TEXT NOT NULL,
 	pdf TEXT,
 	status VARCHAR(10),
-	CHECK (status IN ('pendiente', 'ingresada')),
+	CHECK (status IN ('pendiente', 'ingresada', 'borrada')),
 	PRIMARY KEY(dte, serie),
 	FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
 	FOREIGN KEY (nit_emisor) REFERENCES empresas(nit) 
