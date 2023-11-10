@@ -3,7 +3,7 @@ const pool = require('../config/database');
 module.exports = (app) => {
 
     //Obtener todas las empresas
-    app.get('/empresas', (req, res) => {
+    app.get('/getEmpresas', (req, res) => {
         pool.query("SELECT * FROM empresas", (err, results) => {
             if(err){
                 res.json({status: 0, mensaje: "Error en la consulta"})

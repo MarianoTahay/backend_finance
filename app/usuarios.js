@@ -211,7 +211,22 @@ module.exports = (app) => {
 
         const {id} = req.body;
 
-        pool.query('SELECT * FROM usuarios WHERE id_usuario != $1', [id], (err, result) => {
+        pool.query('SELECT id_usuario, username FROM usuarios WHERE id_usuario != $1 AND rol = $2 OR rol = $3', [id, 'usuario', 'contador'], (err, result) => {
+            if(err){
+                res.json({status: 0, mensaje: "Error en la consulta"});
+            }
+            else{
+                res.json({status: 1, mensaje: "Usuarios retribuidos", values: result.rows})
+            }
+        })
+    })
+
+    //Lista de usuarios
+    app.post('/listUsers', (req, res) => {
+
+        const {id} = req.body;
+
+        pool.query('SELECT id_usuario, username FROM usuarios WHERE id_usuario = $1 OR id_contador = $1', [id], (err, result) => {
             if(err){
                 res.json({status: 0, mensaje: "Error en la consulta"});
             }

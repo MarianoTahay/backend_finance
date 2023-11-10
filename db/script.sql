@@ -9,6 +9,10 @@ SELECT * FROM facturas
 
 SELECT * FROM empresas
 
+DELETE FROM facturas
+
+UPDATE facturas SET status = 'ingresada' 
+
 DELETE FROM usuarios WHERE nombre = 'Mariano'
 
 UPDATE usuarios SET avatar = '1.jpg' WHERE nombre = 'Mariano'
@@ -80,16 +84,22 @@ CREATE TABLE facturas(
 	FOREIGN KEY (nit_emisor) REFERENCES empresas(nit) 
 );
 
-SELECT X.* FROM (SELECT * 
+/*
+	ID_USUARIO | FECHA MINIMA | FECHA MAXIMA | MONTO MIN | MONTA MAX | NIT_EMISOR | ORDEN
+*/
+
+SELECT X.*, U.username FROM (SELECT * 
 				FROM facturas 
 				WHERE fecha_emision >= (SELECT MIN(fecha_emision) FROM facturas) AND
 				fecha_emision <= (SELECT MAX(fecha_emision) FROM facturas) AND 
 				monto >= (SELECT MIN(monto) FROM facturas) AND
 				monto <= (SELECT MAX(monto) FROM  facturas) AND
-				username LIKE '%' AND
-				nit_emisor::text LIKE '%'
+				id_usuario::text LIKE '%' AND
+				nit_emisor::text LIKE '%' AND
+				nit_receptor::text LIKE '%' AND
+				status LIKE 'ingresada'
 				ORDER BY monto ASC) AS X, usuarios AS U
-				WHERE U.username = X.username AND U.contador = 'jamesdavis'
+				WHERE U.id_usuario = X.id_usuario
 
 (SELECT username FROM usuarios WHERE contador = 'juan123')
 

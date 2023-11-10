@@ -3,6 +3,7 @@ const multer = require('multer');
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const jwt = require('jsonwebtoken');
 
 module.exports = (app) => {
 
@@ -62,7 +63,7 @@ module.exports = (app) => {
 
       console.log(token);
 
-      cb(null, token + path.extname(file.originalname))
+      cb(null, token)
     }
   })
   
@@ -73,6 +74,4 @@ module.exports = (app) => {
     console.log("Factura subida");
 
   })
-
-
 }
