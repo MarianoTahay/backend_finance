@@ -54,7 +54,6 @@ module.exports = (app) => {
         const {token} = req.body;
 
         const payload = jwt.decode(token);
-        console.log(payload);
 
         if(res){    
             res.json({status: 1, mensaje: "Usuario encontrado", values: payload});
@@ -84,7 +83,6 @@ module.exports = (app) => {
                          res.json({status: 0, mensaje: "Usuario no registrado", error: err})
                     }
                     else{
-
                         res.json({status: 1, mensaje: "Bienvenido @" + result.rows[0].username, status: result.rows[0].status, cuenta: result.rows[0].cuenta});
                     }
                 }
@@ -136,9 +134,6 @@ module.exports = (app) => {
             res.json({status: 0, mensaje: "Usuarion no valido"});
         }
         else{
-
-            console.log("DATA: " + nombre + ", " + apellido + ", " + email + ", " + password + ", " + username + ", " + fecha_registro + ", " + hora_inicio)
-
             pool.query("INSERT INTO usuarios (nombre, apellido, email, pass, username, status, cuenta, fecha_registro, hora_inicio, horas, rol) VALUES($1, $2, $3, $4, $5, 'Nlogged', 'activa', $6, $7, 0, $8)", [nombre, apellido, email, password, username, fecha_registro, hora_inicio, "usuario"], (err, results) => {
                 if(err){
                     res.json({status: 0, mensaje: "Intente de nuevo"})
@@ -153,18 +148,18 @@ module.exports = (app) => {
     //Obtener todos los usuarios para la data del admin
     app.post('/users-filter', (req, res) => {
 
-        const {contador, username, email, facturas_min, facturas_max, total_min, total_max, orderBy, order} = req.body 
+        const {id_contador, id_usuario, email, facturas_min, facturas_max, total_min, total_max, orderBy, order} = req.body 
 
         usuario = "'%'";
         correo = "'%'";
-        fac_min = "(SELECT MIN(x.monto) FROM (SELECT COUNT(monto) AS monto FROM facturas GROUP BY(username)) AS x)";
-        fac_max = "(SELECT MAX(x.monto) FROM (SELECT COUNT(monto) AS monto FROM facturas GROUP BY(username)) AS x)";
+        fac_min = "(SELECT MIN(x.monto) FROM (SELECT COUNT(monto) AS monto FROM facturas GROUP BY(id_usuario)) AS x)";
+        fac_max = "(SELECT MAX(x.monto) FROM (SELECT COUNT(monto) AS monto FROM facturas GROUP BY(id_usuario)) AS x)";
         tot_min = "(SELECT MIN(monto) FROM facturas)";
         tot_max = "(SELECT MAX(monto) FROM facturas)";
         
 
-        if(username != ""){
-            usuario = "'" + username + "'";
+        if(id_usuario != ""){
+            usuario = "'" + id_usuario + "'";
         }
 
         if(email != ""){
@@ -187,17 +182,18 @@ module.exports = (app) => {
             tot_max = total_max;
         }
 
-        consulta = "SELECT x.username, x.email, x.facturas, x.total FROM (SELECT U.username, U.email, COUNT(F.monto) AS Facturas, SUM(F.monto) AS Total FROM usuarios AS U, facturas AS F WHERE U.contador = $1 AND U.username = F.username AND U.username LIKE " + usuario + " AND U.email LIKE " + correo + " AND F.monto >=  " + tot_min + " AND F.monto <= " + tot_max + " GROUP BY(U.username)) AS x WHERE x.facturas >= " + fac_min + " AND x.facturas <= " + fac_max;
+        consulta = "SELECT x.avatar, x.id_usuario, x.username, x.email, x.facturas, x.total FROM (SELECT U.avatar, U.id_usuario, U.username, U.email, COUNT(F.monto) AS Facturas, SUM(F.monto) AS Total FROM usuarios AS U, facturas AS F WHERE U.id_contador::text LIKE $1 AND U.id_usuario = F.id_usuario AND U.id_usuario::text LIKE " + usuario + " AND U.email LIKE " + correo + " AND F.monto >=  " + tot_min + " AND F.monto <= " + tot_max + " GROUP BY(U.avatar, U.id_usuario, U.username, U.email)) AS x WHERE x.facturas >= " + fac_min + " AND x.facturas <= " + fac_max;
 
         if(orderBy != "" && order != ""){
             consulta = consulta + " ORDER BY " + "x." + orderBy + " " + order
         }
 
-        pool.query(consulta, [contador], (err, results) => {
+        pool.query(consulta, [id_contador], (err, results) => {
             if(err){
-                res.json({status: 0, mensaje: "Error en la consulta"})
+                console.log(err)
+                res.json({status: 0, mensaje: "Error en la consulta", error: err})
             }
-            else if(contador == ""){
+            else if(id_contador == ""){
                 res.json({status: 0, mensaje: "Error, no se ingreso un contador", values: results.rows});
             }
             else{
@@ -284,7 +280,6 @@ module.exports = (app) => {
             });
         }
         else{
-            console.log("hola" + nombre + apellido + email + avatar)
             pool.query('UPDATE usuarios SET nombre = $1, apellido = $2, email = $3, avatar = $4 WHERE email = $3', [nombre, apellido, email, avatar], (err, result) => {
                 if(err){
                     console.log(err)

@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken');
 
 module.exports = (app) => {
 
-  app.use('/static', express.static('assets'))
+  app.use('/static', express.static('assets'));
 
   app.post('/getProfilePic', (req, res) => {
 
@@ -46,7 +46,7 @@ module.exports = (app) => {
 
   app.post('/subirArchivo', upload.single('archivo'), (req, res) => {
 
-    console.log("Archivo subido");
+    console.log("AVATAR SUBIDO");
 
   })
 
@@ -61,8 +61,6 @@ module.exports = (app) => {
 
       const token = req.body.token;
 
-      console.log(token);
-
       cb(null, token)
     }
   })
@@ -71,7 +69,8 @@ module.exports = (app) => {
 
   app.post('/subirFactura', uploadBills.single('archivo'), (req, res) => {
 
-    console.log("Factura subida");
+    console.log("MULTER Factura subida");
 
   })
+
 }
