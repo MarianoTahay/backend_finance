@@ -45,11 +45,11 @@ module.exports = (app) => {
             console.log("Se cambio la empresa:  " + receptor);
         }
 
-        consulta = "SELECT X.*, U.username FROM (SELECT * FROM facturas WHERE " + "fecha_emision >= " + fecha_inicio + " AND fecha_emision <= " + fecha_fin + " AND monto >= " + monto_min + " AND monto <= " + monto_max + " AND id_usuario::text LIKE " + usuario + " AND nit_emisor::text LIKE " + emisor + " AND nit_receptor::text LIKE " + receptor + " AND status = '" + status + "') AS X, usuarios AS U WHERE U.id_usuario = X.id_usuario";
+        consulta = "SELECT X.*, U.username FROM (SELECT * FROM facturas WHERE " + "fecha_emision >= " + fecha_inicio + " AND fecha_emision <= " + fecha_fin + " AND monto >= " + monto_min + " AND monto <= " + monto_max + " AND id_usuario::text LIKE " + usuario + " AND nit_emisor::text LIKE " + emisor + " AND nit_receptor::text LIKE " + receptor + " AND status = '" + status + "') AS X, usuarios AS U WHERE U.id_usuario = X.id_usuario AND U.cuenta != 'Nactiva'";
 
         if(id_usuario == ""){
             if(id_contador != ""){
-                consulta = "SELECT X.*, U.username FROM (SELECT * FROM facturas WHERE " + "fecha_emision >= " + fecha_inicio + " AND fecha_emision <= " + fecha_fin + " AND monto >= " + monto_min + " AND monto <= " + monto_max + " AND (id_usuario::text LIKE " + usuario + " OR id_usuario::text LIKE '" + id_contador  + "') AND nit_emisor::text LIKE " + emisor + " AND nit_receptor::text LIKE " + receptor + " AND status = '" + status + "') AS X, usuarios AS U WHERE U.id_usuario = X.id_usuario";
+                consulta = "SELECT X.*, U.username FROM (SELECT * FROM facturas WHERE " + "fecha_emision >= " + fecha_inicio + " AND fecha_emision <= " + fecha_fin + " AND monto >= " + monto_min + " AND monto <= " + monto_max + " AND (id_usuario::text LIKE " + usuario + " OR id_usuario::text LIKE '" + id_contador  + "') AND nit_emisor::text LIKE " + emisor + " AND nit_receptor::text LIKE " + receptor + " AND status = '" + status + "') AS X, usuarios AS U WHERE U.id_usuario = X.id_usuario AND U.cuenta != 'Nactiva'";
             }    
         }
 
@@ -147,6 +147,7 @@ module.exports = (app) => {
                 pool.query("INSERT INTO facturas(dte, serie, nit_emisor, nit_receptor, monto, fecha_emision, id_usuario, imagen, pdf, status) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) ", [dte, serie, emisor, receptor, monto, emision, user, imagen, pdf, status], (err, results) => {
                 
                     if(err){
+                        console.log(err)
                         res.json({status: 0, mensaje: "No se pudo ingresar la factura", error: err})
                     }
                     else{
@@ -200,7 +201,7 @@ module.exports = (app) => {
             usuario = "'" + id_usuario +"'"
         }
 
-        consulta = "SELECT F.id_factura, F.id_usuario, F.imagen, F.pdf, F.fecha_emision, X.avatar, X.username, F.serie, F.dte FROM (SELECT id_usuario, avatar, username FROM usuarios WHERE id_contador::text LIKE " + contador + " AND id_usuario::text LIKE " +  usuario + ") AS X, facturas AS F WHERE X.id_usuario = F.id_usuario AND F.status = 'pendiente' AND F.fecha_emision >= " + fecha_inicio + " AND F.fecha_emision <= " + fecha_fin;
+        consulta = "SELECT F.id_factura, F.id_usuario, F.imagen, F.pdf, F.fecha_emision, X.avatar, X.username, F.serie, F.dte FROM (SELECT id_usuario, avatar, username FROM usuarios WHERE cuenta != 'Nactiva' AND id_contador::text LIKE " + contador + " AND id_usuario::text LIKE " +  usuario + ") AS X, facturas AS F WHERE X.id_usuario = F.id_usuario AND F.status = 'pendiente' AND F.fecha_emision >= " + fecha_inicio + " AND F.fecha_emision <= " + fecha_fin;
 
         pool.query(consulta, (err, result) => {
             if(err){

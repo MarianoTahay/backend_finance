@@ -10,6 +10,7 @@ require("./app/usuarios")(app)
 require("./app/facturas")(app)
 require("./app/empresas")(app)
 require("./app/assets")(app)
+require("./app/reportes")(app)
 
 const port = 3000
 

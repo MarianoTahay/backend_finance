@@ -4,7 +4,7 @@ module.exports = (app) => {
 
     //Obtener todas las empresas
     app.get('/getEmpresas', (req, res) => {
-        pool.query("SELECT * FROM empresas WHERE nit != 0", (err, results) => {
+        pool.query("SELECT * FROM empresas WHERE nit != 0 AND status != 'Nvigente'", (err, results) => {
             if(err){
                 res.json({status: 0, mensaje: "Error en la consulta"})
             }

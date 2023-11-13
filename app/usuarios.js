@@ -182,7 +182,7 @@ module.exports = (app) => {
             tot_max = total_max;
         }
 
-        consulta = "SELECT x.avatar, x.id_usuario, x.username, x.email, x.facturas, x.total FROM (SELECT U.avatar, U.id_usuario, U.username, U.email, COUNT(F.monto) AS Facturas, SUM(F.monto) AS Total FROM usuarios AS U, facturas AS F WHERE U.id_contador::text LIKE $1 AND U.id_usuario = F.id_usuario AND U.id_usuario::text LIKE " + usuario + " AND U.email LIKE " + correo + " AND F.monto >=  " + tot_min + " AND F.monto <= " + tot_max + " GROUP BY(U.avatar, U.id_usuario, U.username, U.email)) AS x WHERE x.facturas >= " + fac_min + " AND x.facturas <= " + fac_max;
+        consulta = "SELECT x.avatar, x.id_usuario, x.username, x.email, x.facturas, x.total FROM (SELECT U.avatar, U.id_usuario, U.username, U.email, COUNT(F.monto) AS Facturas, SUM(F.monto) AS Total FROM usuarios AS U, facturas AS F WHERE U.cuenta != 'Nactiva' AND U.id_contador::text LIKE $1 AND U.id_usuario = F.id_usuario AND U.id_usuario::text LIKE " + usuario + " AND U.email LIKE " + correo + " AND F.monto >=  " + tot_min + " AND F.monto <= " + tot_max + " GROUP BY(U.avatar, U.id_usuario, U.username, U.email)) AS x WHERE x.facturas >= " + fac_min + " AND x.facturas <= " + fac_max;
 
         if(orderBy != "" && order != ""){
             consulta = consulta + " ORDER BY " + "x." + orderBy + " " + order
@@ -207,7 +207,7 @@ module.exports = (app) => {
 
         const {id} = req.body;
 
-        pool.query('SELECT id_usuario, username FROM usuarios WHERE id_usuario != $1 AND rol = $2 OR rol = $3', [id, 'usuario', 'contador'], (err, result) => {
+        pool.query("SELECT id_usuario, username FROM usuarios WHERE id_usuario != $1 AND rol = $2 OR rol = $3 AND cuenta != 'Nactiva'", [id, 'usuario', 'contador'], (err, result) => {
             if(err){
                 res.json({status: 0, mensaje: "Error en la consulta"});
             }
@@ -291,6 +291,73 @@ module.exports = (app) => {
                 
             });
         }
+    });
+
+    //Borrar cuenta del usuario
+    app.post('/deleteAccount', (req, res) => {
+
+        const{id_usuario} = req.body;
+
+        pool.query("UPDATE usuarios SET cuenta = 'Nactiva', id_contador = null WHERE id_usuario = $1", [id_usuario], (err, result) => {
+            if(err){
+                console.log(err)
+                res.json({status: 0, mensaje: "Error en la consulta"})
+            }
+            else{
+
+                pool.query("UPDATE usuarios SET rol = 'usuario', id_contador = null WHERE id_contador = $1", [id_usuario], (err, result) => {
+                    if(err){
+                        res.json({status: 0, mensaje: "Error en la consulta"})
+                    }
+                    else{
+                        res.json({status: 1, mensaje: "Cuenta borrada"})
+                    }
+                })
+            }
+        })
+
+    });
+
+    //Remover a un cliente
+    app.post('/removeClient', (req, res) => {
+
+        const {id_usuario, id_contador} = req.body;
+
+        pool.query("UPDATE usuarios SET rol = 'usuario', id_contador = null WHERE id_usuario = $1", [id_usuario], (err, result) => {
+            if(err){
+                console.log("1:" + err)
+                res.json({status: 0, mensaje: "Error en la consulta"})
+            }
+            else{
+
+                pool.query("SELECT * FROM usuarios WHERE id_contador = $1", [id_contador], (err, result2) => {
+                    if(err){
+                        console.log("2:" + err)
+                        res.json({status: 0, mensaje: "Error en la consulta"})
+                    }
+                    else{
+
+                        if(result2.rows.length == 0){
+
+                            pool.query("UPDATE usuarios SET rol = 'usuario' WHERE id_usuario = $1", [id_contador], (err, result3) => {
+                                if(err){
+                                    console.log("3:" + err)
+                                    res.json({status: 0, mensaje: "Error en la consulta"})
+                                }
+                                else{
+                                    res.json({status: 1, mensaje: "Cliente eliminado"})
+                                }
+                            })
+                        }
+                        else{
+                            res.json({status: 1, mensaje: "Cliente eliminado"})
+                        }
+
+                    }
+                })
+            }
+        })
+
     });
 
 }

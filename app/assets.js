@@ -73,4 +73,27 @@ module.exports = (app) => {
 
   })
 
+  ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+  const storageReports = multer.diskStorage({
+    destination: function (req, file, cb) {
+
+      cb(null, 'assets/reports')
+    },
+    filename: function (req, file, cb) {
+
+      const token = req.body.token;
+
+      cb(null, token)
+    }
+  })
+  
+  const uploadReports = multer({storage: storageReports})
+
+  app.post('/subirReporte', uploadReports.single('archivo'), (req, res) => {
+
+    console.log("MULTER Reporte subido");
+
+  })
+
 }
