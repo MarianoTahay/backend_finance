@@ -5,8 +5,6 @@ DROP TABLE reportes
 DROP TABLE mensajes
 DROP TABLE usuarios
 
-SELECT * FROM usuarios
-
 CREATE TABLE usuarios(
 	id_usuario SERIAL NOT NULL,
 	nombre VARCHAR(50) NOT NULL,
@@ -37,10 +35,6 @@ CREATE TABLE categorias(
 	PRIMARY KEY(id_categoria)
 );
 
-INSERT INTO categorias(nombre, status) VALUES('Comida', 'disponible')
-
-SELECT * FROM categorias
-
 CREATE TABLE empresas( 
 	nombre VARCHAR(50) NOT NULL,
 	nit INTEGER NOT NULL,
@@ -51,10 +45,6 @@ CREATE TABLE empresas(
 	PRIMARY KEY(nit),
 	FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria)
 );
-
-INSERT INTO empresas(nombre, nit, id_categoria, status) VALUES('Pendientes', 0, 1, 'vigente')
-
-SELECT * FROM empresas
 
 CREATE TABLE facturas(
 	id_factura SERIAL NOT NULL,
@@ -74,16 +64,7 @@ CREATE TABLE facturas(
 	FOREIGN KEY (nit_emisor) REFERENCES empresas(nit) 
 );
 
-DELETE FROM facturas
-
-DELETE FROM usuarios
-
-SELECT * FROM facturas
-
-update facturas set nit_receptor = 'CF' where id_factura = 8
-
-INSERT INTO empresas
-
+/* FUNCIONALIDAD NO IMPLEMENTADA DEL SISTEMA DE NOTIFICACIONES */
 CREATE TABLE mensajes(
 	id_mensaje SERIAL NOT NULL,
 	id_usuario_from INTEGER NOT NULL,

@@ -13,7 +13,7 @@ module.exports = (app) => {
 
     const {name, tipo} = req.body;
 
-    const rutaImagen = "http://localhost:3000/static/" + tipo + "/" + name;
+    const rutaImagen = "http://142.93.60.140:82/static/" + tipo + "/" + name;
 
     fs.access('assets/' + tipo + '/' + name, fs.constants.F_OK, (err) => {
       if(err){
